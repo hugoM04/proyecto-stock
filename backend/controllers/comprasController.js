@@ -84,3 +84,8 @@ const crearCompra = async (req, res) => {
     });
   }
 };
+
+module.exports = {
+  obtenerCompras,
+  crearCompra,
+};
