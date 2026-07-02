@@ -33,8 +33,7 @@ const crearCompra = async (req, res) => {
     const {
       portafolio_id,
       accion_id,
-      cantidad,
-      precio_compra,
+      cantidad
     } = req.body;
 
     if (!portafolio_id || !accion_id || !cantidad || !precio_compra) {

@@ -50,3 +50,7 @@ app.use("/api/compras", comprasRoutes);
 const ventasRoutes = require("./routes/ventas");
 
 app.use("/api/ventas", ventasRoutes);
+
+const cotizacionesRoutes = require("./routes/cotizaciones");
+
+app.use("/api/cotizacion", cotizacionesRoutes);

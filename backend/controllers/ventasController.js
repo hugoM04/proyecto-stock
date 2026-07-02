@@ -34,8 +34,7 @@ const crearVenta = async (req, res) => {
     const {
       portafolio_id,
       accion_id,
-      cantidad,
-      precio_venta,
+      cantidad
     } = req.body;
 
     if (!portafolio_id || !accion_id || !cantidad || !precio_venta) {
