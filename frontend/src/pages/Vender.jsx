@@ -1,8 +1,8 @@
-function Vender() {
+import FormularioOperacion from "../components/FormularioOperacion";
 
-    return (
-        <h1>Vender</h1>
-    );
+function Vender(){
+
+    return <FormularioOperacion tipo="venta" />;
 
 }
 

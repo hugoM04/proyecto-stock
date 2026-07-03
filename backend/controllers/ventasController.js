@@ -1,4 +1,5 @@
 const pool = require("../config/db");
+const { obtenerCotizacion } = require("../services/marketDataService");
 
 // Obtener todas las ventas
 const obtenerVentas = async (req, res) => {
@@ -37,7 +38,7 @@ const crearVenta = async (req, res) => {
       cantidad
     } = req.body;
 
-    if (!portafolio_id || !accion_id || !cantidad || !precio_venta) {
+    if (!portafolio_id || !accion_id || !cantidad ) {
       return res.status(400).json({
         mensaje: "Todos los campos son obligatorios",
       });
@@ -57,15 +58,25 @@ const crearVenta = async (req, res) => {
 
     // Validar acción
     const existeAccion = await pool.query(
-      "SELECT id FROM acciones WHERE id = $1",
-      [accion_id]
-    );
+    `
+    SELECT id, simbolo
+    FROM acciones
+    WHERE id = $1
+    `,
+    [accion_id]
+  );
 
     if (existeAccion.rowCount === 0) {
       return res.status(404).json({
         mensaje: "La acción no existe",
       });
     }
+    
+    const simbolo = existeAccion.rows[0].simbolo;
+
+    const datos = await obtenerCotizacion(simbolo);
+
+    const precio_venta = datos.last[0];
 
     // Total comprado
     const compras = await pool.query(
