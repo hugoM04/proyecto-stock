@@ -43,6 +43,12 @@ const crearCompra = async (req, res) => {
       });
     }
 
+    if (cantidad <= 0) {
+  return res.status(400).json({
+    mensaje: "La cantidad debe ser mayor que cero."
+  });
+}
+
     // Validar portafolio
     const existePortafolio = await pool.query(
       "SELECT id FROM portafolios WHERE id = $1",
@@ -91,7 +97,7 @@ const crearCompra = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({
-      mensaje: "Error al registrar la compra",
+      mensaje: "No fue posible registrar la compra. Intente nuevamente.",
     });
   }
 };

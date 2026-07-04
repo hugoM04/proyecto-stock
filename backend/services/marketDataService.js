@@ -20,9 +20,21 @@ const obtenerCotizacion = async (simbolos) => {
 
     console.error("Error MarketData:", error.message);
 
-    throw new Error("No fue posible consultar MarketData");
+    if (error.response) {
 
-  }
+        throw new Error("MarketData respondió con un error.");
+
+    }
+
+    if (error.request) {
+
+        throw new Error("No fue posible conectar con MarketData.");
+
+    }
+
+    throw new Error("Error inesperado al consultar MarketData.");
+
+   }
 };
 
 module.exports = {

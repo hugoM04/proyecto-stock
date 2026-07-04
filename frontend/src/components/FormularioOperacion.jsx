@@ -21,6 +21,9 @@ function FormularioOperacion({ tipo }) {
     const [mensaje, setMensaje] = useState("");
 
     const [error, setError] = useState("");
+    
+    // Nuevo estado para controlar la petición asíncrona
+    const [cargando, setCargando] = useState(false);
 
     useEffect(() => {
 
@@ -40,7 +43,6 @@ function FormularioOperacion({ tipo }) {
         }catch(error){
 
             console.error(error);
-
         }
 
     };
@@ -79,57 +81,70 @@ function FormularioOperacion({ tipo }) {
 
     const guardarOperacion = async () => {
 
-    try {
-
         setMensaje("");
         setError("");
 
-        if (
-            !portafolioSeleccionado ||
-            !accionSeleccionada ||
-            !cantidad
-        ) {
-
-            setError("Todos los campos son obligatorios.");
-
+        if (!portafolioSeleccionado) {
+            setError("Seleccione un portafolio.");
             return;
-
         }
 
-        const datos = {
-
-            portafolio_id: Number(portafolioSeleccionado),
-            accion_id: Number(accionSeleccionada),
-            cantidad: Number(cantidad)
-
-        };
-
-        if (tipo === "compra") {
-
-            await registrarCompra(datos);
-
-        } else {
-
-            await registrarVenta(datos);
-
+        if (!accionSeleccionada) {
+            setError("Seleccione una acción.");
+            return;
         }
 
-        setMensaje("Operación registrada correctamente.");
+        if (!cantidad) {
+            setError("Ingrese una cantidad.");
+            return;
+        }
 
-        setCantidad("");
+        if (Number(cantidad) <= 0) {
+            setError("La cantidad debe ser mayor que cero.");
+            return;
+        }
 
-    } catch (err) {
+        try {
+            
+            setCargando(true);
 
-        console.error(err);
+            const datos = {
 
-        setError(
-            err.response?.data?.mensaje ||
-            "Ocurrió un error."
-        );
+                portafolio_id: Number(portafolioSeleccionado),
+                accion_id: Number(accionSeleccionada),
+                cantidad: Number(cantidad)
 
-    }
+            };
 
-};
+            if (tipo === "compra") {
+
+                await registrarCompra(datos);
+
+            } else {
+
+                await registrarVenta(datos);
+
+            }
+
+            setMensaje("Operación registrada correctamente.");
+
+            setCantidad("");
+
+        } catch (err) {
+
+            console.error(err);
+
+            setError(
+                err.response?.data?.mensaje ||
+                "Ocurrió un error."
+            );
+        } finally {
+            
+            setCargando(false);
+            
+        }
+
+    };
 
     return (
 
@@ -170,7 +185,6 @@ function FormularioOperacion({ tipo }) {
                             onChange={(e)=>setPortafolioSeleccionado(e.target.value)}
 
                         >
-
                             <option value="">
 
                                 Seleccione un portafolio
@@ -213,7 +227,6 @@ function FormularioOperacion({ tipo }) {
                             className="form-select"
 
                             value={accionSeleccionada}
-
                             onChange={(e)=>{
 
                                 setAccionSeleccionada(e.target.value);
@@ -298,7 +311,6 @@ function FormularioOperacion({ tipo }) {
                         <input
 
                             type="number"
-
                             min="1"
 
                             className="form-control"
@@ -310,7 +322,7 @@ function FormularioOperacion({ tipo }) {
                         />
 
                     </div>
-                    
+
                     {
                        mensaje &&
 
@@ -329,28 +341,24 @@ function FormularioOperacion({ tipo }) {
                            {error}
 
                        </div>
-                    } 
+                    }
 
                     <button
-
+                        disabled={cargando}
                         className={
                             tipo==="compra"
                             ? "btn btn-success"
                             : "btn btn-danger"
                         }
-
                         onClick={guardarOperacion}
-
                     >
-
                         {
-
-                            tipo==="compra"
+                            cargando
+                            ? "Procesando..."
+                            : tipo==="compra"
                             ? "Comprar"
                             : "Vender"
-
                         }
-
                     </button>
 
                 </div>
