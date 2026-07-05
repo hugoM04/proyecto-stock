@@ -1,0 +1,56 @@
+/* Contenedor principal del Sidebar */
+.sidebar-fixed {
+    background-color: #0b132b !important; /* Azul marino/grisáceo ultra oscuro de la imagen */
+    height: calc(100vh - 56px);
+    position: sticky;
+    top: 56px;
+    z-index: 1020;
+}
+
+/* Estilo para el Logo */
+.sidebar-brand {
+    color: #ffffff;
+}
+
+.brand-icon-wrapper {
+    background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); /* Degradado vivo cian-azul */
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    color: white;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 10px rgba(0, 242, 254, 0.3);
+}
+
+.brand-text {
+    letter-spacing: -0.5px;
+}
+
+/* Enlaces del menú (Inactivos) */
+.sidebar-fixed .nav-link {
+    border-radius: 10px;
+    margin-bottom: 8px;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    color: #94a3b8 !important; /* Gris azulado suave */
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Efecto Hover */
+.sidebar-fixed .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+    color: #ffffff !important;
+}
+
+/* ENLACE ACTIVO (Estilo idéntico a tu imagen de referencia) */
+.sidebar-fixed .nav-link.active {
+    background: #007bff !important; /* Azul brillante vivo */
+    color: #ffffff !important;
+    font-weight: 600;
+    /* Efecto de sombra neón sutil */
+    box-shadow: 0 4px 14px rgba(0, 123, 255, 0.4); 
+}

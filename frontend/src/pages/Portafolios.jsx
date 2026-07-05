@@ -1,25 +1,48 @@
 import { useEffect, useState } from "react";
+import { obtenerResumen } from "../services/resumenPortafolioService";
+import ResumenCards from "../components/dashboard/ResumenCards";
+import TablaAcciones from "../components/dashboard/TablaAcciones";
+import GraficaPortafolio from "../components/dashboard/GraficaPortafolio";
+import { obtenerHistorial } from "../services/historialService";
 import { obtenerPortafolios } from "../services/portafoliosService";
 
-function Portafolios() {
-
+function Portafolios(){
+    const [resumen, setResumen] = useState(null);
+    const [historial, setHistorial] = useState([]);
     const [portafolios, setPortafolios] = useState([]);
+    const [portafolioSeleccionado, setPortafolioSeleccionado] = useState("");
+
+    useEffect(() => {
+        cargarPortafolios();
+    }, []);
 
     useEffect(() => {
 
-        cargarPortafolios();
+        if(portafolioSeleccionado){
 
-    }, []);
+            cargarResumen();
+
+            cargarHistorial();
+
+        }
+
+    }, [portafolioSeleccionado]);
 
     const cargarPortafolios = async () => {
 
-        try {
+        try{
 
             const data = await obtenerPortafolios();
 
             setPortafolios(data);
 
-        } catch (error) {
+            if(data.length > 0){
+
+                setPortafolioSeleccionado(data[0].id);
+
+            }
+
+        }catch(error){
 
             console.error(error);
 
@@ -27,47 +50,101 @@ function Portafolios() {
 
     };
 
-    return (
+    const cargarResumen = async () => {
+        try {
+            const data = await obtenerResumen(portafolioSeleccionado);
+            setResumen(data);
+        } catch(error) {
+            console.error(error);
+        }
+    };
 
-        <div>
+    const cargarHistorial = async () => {
+        try {
+            const data = await obtenerHistorial(portafolioSeleccionado);
+            setHistorial(data);
+        } catch(error) {
+            console.error(error);
+        }
+    };
 
-            <h2>Portafolios</h2>
+    if(!resumen){
+        return (
 
-            <table className="table table-bordered">
+            <div className="d-flex justify-content-center align-items-center vh-100">
+                <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Cargando...</span>
+                </div>
+            </div>
+        );
+    }
 
-                <thead>
+    return(
+        <div className="container-fluid px-2">
+            
+            {/* Título de la sección */}
 
-                    <tr>
+            <div className="mb-4">
 
-                        <th>ID</th>
-                        <th>Nombre</th>
+                <label className="form-label fw-semibold">
 
-                    </tr>
+                    Seleccionar portafolio
 
-                </thead>
+                </label>
 
-                <tbody>
+                <select
 
-                    {portafolios.map((portafolio) => (
+                    className="form-select"
 
-                        <tr key={portafolio.id}>
+                    value={portafolioSeleccionado}
 
-                            <td>{portafolio.id}</td>
+                    onChange={(e)=>setPortafolioSeleccionado(e.target.value)}
 
-                            <td>{portafolio.nombre}</td>
+                >
 
-                        </tr>
+                    {
 
-                    ))}
+                        portafolios.map((p)=>(
 
-                </tbody>
+                            <option
+                                key={p.id}
+                                value={p.id}
+                            >
 
-            </table>
+                                {p.nombre}
+
+                            </option>
+
+                        ))
+
+                    }
+
+                </select>
+
+            </div>
+
+            <div className="mb-4">
+                <h1 className="h3 fw-bold text-dark mb-1">{resumen.portafolio}</h1>
+                <p className="text-muted small">Revisión general de tus activos y rendimiento en tiempo real.</p>
+            </div>
+
+            {/* Componente de las 3 tarjetas informativas */}
+            <div className="mb-4">
+                <ResumenCards resumen={resumen}/>
+            </div>
+  
+            {/* Bloque de Gráfica */}
+            <div className="mb-4">
+                <GraficaPortafolio historial={historial}/>
+            </div>
+
+            {/* Listado de Acciones en tabla */}
+            <div className="mb-4">
+                <TablaAcciones acciones={resumen.acciones}/>
+            </div>
 
         </div>
-
     );
-
 }
 
 export default Portafolios;
