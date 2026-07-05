@@ -1,22 +1,11 @@
 import { useEffect, useState } from "react";
-
+import { LOGOS } from "../utils/logos";
 import { obtenerAcciones } from "../services/accionesService";
 import { obtenerPortafolios } from "../services/portafoliosService";
 import api from "../services/api";
 import { registrarCompra } from "../services/comprasService";
 import { registrarVenta } from "../services/ventasService";
 
-// 1. Diccionario de mapeo: Símbolo -> Dominio de la empresa para los logos
-const DOMINIOS_EMPRESAS = {
-    AAPL: "apple.com",
-    AMZN: "amazon.com",
-    GOOGL: "google.com",
-    IBM: "ibm.com",
-    META: "meta.com",
-    MSFT: "microsoft.com",
-    NVDA: "nvidia.com",
-    TSLA: "tesla.com"
-};
 
 function FormularioOperacion({ tipo }) {
 
@@ -119,20 +108,14 @@ function FormularioOperacion({ tipo }) {
         }
     };
 
-    // 2. Función auxiliar para obtener la URL del logo
-    const obtenerUrlLogo = (simbolo) => {
-        const dominio = DOMINIOS_EMPRESAS[simbolo];
-        return dominio 
-            ? `https://logo.clearbit.com/${dominio}` 
-            : null;
-    };
+    
 
     return (
         <div className="container-fluid px-2 mt-2">
             
             <div className="mb-4">
                 <h1 className="h3 fw-bold text-dark mb-1">
-                    {tipo === "compra" ? "Nueva Compra" : "Nueva Venta"}
+                    {tipo === "compra" ? "Comprar Acciones" : "Vender Acciones"}
                 </h1>
                 <p className="text-muted small">Registra transacciones en tu portafolio de manera inmediata.</p>
             </div>
@@ -175,18 +158,20 @@ function FormularioOperacion({ tipo }) {
                         <label className="form-label fw-semibold text-secondary small text-uppercase tracking-wider d-flex justify-content-between align-items-center">
                             <span>Seleccionar Activo / Acción</span>
                             
-                            {/* 3. Muestra el logo real de forma dinámica aquí arriba si hay una acción seleccionada */}
-                            {simboloActivo && obtenerUrlLogo(simboloActivo) && (
-                                <img 
-                                    src={obtenerUrlLogo(simboloActivo)} 
+                            {/* Logo de la empresa seleccionada */}
+                            {simboloActivo && LOGOS[simboloActivo] && (
+                                <img
+                                    src={LOGOS[simboloActivo]}
                                     alt={simboloActivo}
-                                    className="rounded-circle shadow-sm border border-light"
-                                    style={{ width: "24px", height: "24px", objectFit: "contain" }}
-                                    onError={(e) => { e.target.style.display = 'none'; }} // Esconde el logo si falla la carga
+                                    className="rounded-circle border bg-white p-1 shadow-sm"
+                                    style={{
+                                        width: "36px",
+                                        height: "36px",
+                                        objectFit: "contain"
+                                    }}
                                 />
                             )}
                         </label>
-                        
                         <select
                             className="form-select form-select-lg border-light-subtle rounded-3"
                             style={{ fontSize: "0.95rem" }}
@@ -225,7 +210,55 @@ function FormularioOperacion({ tipo }) {
                                  style={{ backgroundColor: "#f0fdf4", color: "#16a34a" }}>
                                 <span className="fw-medium">
                                     <i className="bi bi-lightning-charge-fill me-2"></i>
-                                    Precio de mercado actual:
+                                    <div
+                                    className="rounded-4 p-4 mb-4"
+                                    style={{
+                                        background:"#f8fafc",
+                                        border:"1px solid #e5e7eb"
+                                    }}
+                                >
+
+                                    <div className="d-flex justify-content-between align-items-center">
+
+                                        <div>
+
+                                            <small className="text-secondary">
+
+                                                Precio en tiempo real
+
+                                            </small>
+
+                                            <h3 className="mb-0 fw-bold">
+
+                                                ${cotizacion.precio}
+
+                                            </h3>
+
+                                        </div>
+
+                                        {
+
+                                            simboloActivo &&
+
+                                            <img
+
+                                                src={LOGOS[simboloActivo]}
+
+                                                style={{
+
+                                                    width:"52px",
+                                                    height:"52px",
+                                                    objectFit:"contain"
+
+                                                }}
+
+                                            />
+
+                                        }
+
+                                    </div>
+
+                                </div>
                                 </span>
                                 <strong className="fs-5">${cotizacion.precio}</strong>
                             </div>
@@ -238,15 +271,79 @@ function FormularioOperacion({ tipo }) {
                             Cantidad de Unidades
                         </label>
                         <input
+
                             type="number"
-                            min="1"
-                            className="form-control form-control-lg border-light-subtle rounded-3"
-                            style={{ fontSize: "0.95rem" }}
-                            placeholder="Ej. 10"
+
+                            className="form-control rounded-4 py-3"
+
+                            placeholder="Ej. 10 acciones"
+
                             value={cantidad}
+
                             onChange={(e)=>setCantidad(e.target.value)}
+
                         />
                     </div>
+
+                    {/* Total estimado */}
+
+                    {
+
+                        cotizacion && cantidad > 0 && (
+
+                            <div className="alert alert-light border rounded-4">
+
+                                <div className="d-flex justify-content-between">
+
+                                    <span>Total estimado</span>
+
+                                    <strong>
+
+                                        $
+
+                                        {(cotizacion.precio * Number(cantidad)).toFixed(2)}
+
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        )
+
+                    }
+
+                    
+
+                    {
+
+                        mensaje && (
+
+                            <div className="alert alert-success">
+
+                                {mensaje}
+
+                            </div>
+
+                        )
+
+                    }
+
+                    
+
+                    {
+
+                        error && (
+
+                            <div className="alert alert-danger">
+
+                                {error}
+
+                            </div>
+
+                        )
+
+                    }
 
                     {/* Alertas de Mensaje y Error */}
                     {

@@ -1,22 +1,8 @@
-// Diccionario de mapeo: Símbolo -> Dominio para los logotipos reales de las empresas
-const DOMINIOS_EMPRESAS = {
-    AAPL: "apple.com",
-    AMZN: "amazon.com",
-    GOOGL: "google.com",
-    IBM: "ibm.com",
-    META: "meta.com",
-    MSFT: "microsoft.com",
-    NVDA: "nvidia.com",
-    TSLA: "tesla.com"
-};
+import { LOGOS } from "../../utils/logos";
 
 function TablaAcciones({ acciones }) {
 
-    // Función auxiliar para jalar la URL del logo
-    const obtenerUrlLogo = (simbolo) => {
-        const dominio = DOMINIOS_EMPRESAS[simbolo];
-        return dominio ? `https://logo.clearbit.com/${dominio}` : null;
-    };
+ 
 
     return (
         <div className="card border-0 shadow-sm rounded-4 overflow-hidden mt-4">
@@ -48,7 +34,7 @@ function TablaAcciones({ acciones }) {
 
                     <tbody>
                         {acciones.map((accion) => {
-                            const urlLogo = obtenerUrlLogo(accion.simbolo);
+                            const logo = LOGOS[accion.simbolo];
                             const esPositivo = accion.ganancia >= 0;
 
                             return (
@@ -65,24 +51,55 @@ function TablaAcciones({ acciones }) {
                                     {/* Logo e Identificador de la Empresa alineados */}
                                     <td className="py-3">
                                         <div className="d-flex align-items-center">
-                                            {urlLogo ? (
-                                                <img 
-                                                    src={urlLogo} 
+
+                                        {logo ? (
+
+                                            <div
+                                                className="d-flex align-items-center justify-content-center bg-white border rounded-3 shadow-sm me-3"
+                                                style={{
+                                                    width: "38px",
+                                                    height: "38px"
+                                                }}
+                                            >
+
+                                                <img
+                                                    src={logo}
                                                     alt={accion.simbolo}
-                                                    className="rounded-circle border border-light shadow-sm me-3"
-                                                    style={{ width: "28px", height: "28px", objectFit: "contain", padding: "1px" }}
-                                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                                    style={{
+                                                        width: "26px",
+                                                        height: "26px",
+                                                        objectFit: "contain"
+                                                    }}
                                                 />
-                                            ) : (
-                                                <div className="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center me-3" 
-                                                     style={{ width: "28px", height: "28px" }}>
-                                                    <i className="bi bi-building text-secondary small"></i>
-                                                </div>
-                                            )}
-                                            <span className="fw-semibold text-dark" style={{ fontSize: "0.95rem" }}>
-                                                {accion.nombre}
-                                            </span>
-                                        </div>
+
+                                            </div>
+
+                                        ) : (
+
+                                            <div
+                                                className="rounded-3 bg-light border d-flex align-items-center justify-content-center me-3"
+                                                style={{
+                                                    width: "38px",
+                                                    height: "38px"
+                                                }}
+                                            >
+
+                                                <i className="bi bi-building"></i>
+
+                                            </div>
+
+                                        )}
+
+                                        <span
+                                            className="fw-semibold text-dark"
+                                            style={{ fontSize: "0.95rem" }}
+                                        >
+
+                                            {accion.nombre}
+
+                                        </span>
+
+                                    </div>
                                     </td>
 
                                     {/* Cantidad centrada y estilizada */}
