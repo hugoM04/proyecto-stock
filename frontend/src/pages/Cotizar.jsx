@@ -13,51 +13,38 @@ function Cotizar() {
 
     const [cantidad, setCantidad] = useState(1);
 
+    // 1. EFECTO DE MONTAJE: Carga el catálogo de acciones una sola vez al inicio
     useEffect(() => {
         cargarAcciones();
     }, []);
 
-    const cargarAcciones = async () => {
+    // 2. EFECTO REACTIVO: Se ejecuta CADA VEZ que cambia la acción seleccionada
+    useEffect(() => {
+        // Limpiamos la cotización vieja de inmediato al cambiar la selección
+        setCotizacion(null);
 
-        try {
-
-            const data = await obtenerAcciones();
-
-            setAcciones(data);
-
-        } catch (error) {
-
-            console.error(error);
-
+        if (accionSeleccionada) {
+            consultarCotizacion(accionSeleccionada);
         }
+    }, [accionSeleccionada]); // <-- Escucha activamente este estado
 
+    const cargarAcciones = async () => {
+        try {
+            const data = await obtenerAcciones();
+            setAcciones(data);
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     const consultarCotizacion = async (simbolo) => {
-
-        if (!simbolo) {
-
-            setCotizacion(null);
-
-            return;
-
-        }
-
         try {
-
             const data = await obtenerCotizacion(simbolo);
-
             setCotizacion(data);
-
         } catch (error) {
-
             console.error(error);
-
         }
-
     };
-
-    
 
     const accionActual = acciones.find(a => a.simbolo === accionSeleccionada);
     const logoSeleccionado = accionActual?.logo || LOGOS[accionSeleccionada];
@@ -109,47 +96,18 @@ function Cotizar() {
                                 Empresa
 
                             </label>
-
-                            <select
-
-                                className="form-select"
-
-                                value={accionSeleccionada}
-
-                                onChange={(e)=>{
-
-                                    setAccionSeleccionada(e.target.value);
-
-                                    consultarCotizacion(e.target.value);
-
-                                }}
-
-                            >
-
-                                <option value="">
-
-                                    Seleccione una empresa
-
-                                </option>
-
-                                {
-
-                                    acciones.map(a=>(
-
-                                        <option
-                                            key={a.id}
-                                            value={a.simbolo}
-                                        >
-
-                                            {a.simbolo} - {a.nombre}
-
-                                        </option>
-
-                                    ))
-
-                                }
-
-                            </select>
+                                <select 
+				    className="form-select"
+				    value={accionSeleccionada}
+				    onChange={(e) => setAccionSeleccionada(e.target.value)} // <-- Simplificado, solo actualiza el estado
+				>
+				    <option value="">Seleccione una empresa</option>
+				    {acciones.map(a => (
+				        <option key={a.id} value={a.simbolo}>
+				            {a.simbolo} - {a.nombre}
+				        </option>
+				    ))}
+				</select>
 
                         </div>
 
