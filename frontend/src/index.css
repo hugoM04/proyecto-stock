@@ -1,0 +1,25 @@
+@media (max-width: 768px) {
+    /* 1. Contenedores principales ocupan todo el ancho */
+    .main-content {
+        margin-left: 0 !important; /* Quitamos el margen que dejaba espacio al sidebar de PC */
+        padding: 15px !important;
+    }
+
+    /* 2. Si usas filas de Bootstrap o Flexbox casero */
+    .dashboard-grid, .row {
+        flex-direction: column !important; /* Fuerza a que las tarjetas se apilen una abajo de otra */
+    }
+
+    .card, .col-md-4, .col-md-6 {
+        width: 100% !important; /* Cada tarjeta toma todo el ancho disponible del celular */
+        margin-bottom: 15px;
+    }
+
+    /* 3. Hacer las tablas horizontales con scroll para que no se corten */
+    .table-responsive {
+        display: block;
+        width: 100%;
+        overflow-x: auto; /* Si la tabla es muy ancha, el usuario puede deslizar de lado con el dedo */
+        -webkit-overflow-scrolling: touch;
+    }
+}

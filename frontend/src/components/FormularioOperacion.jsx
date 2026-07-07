@@ -159,18 +159,20 @@ function FormularioOperacion({ tipo }) {
                             <span>Seleccionar Activo / Acción</span>
                             
                             {/* Logo de la empresa seleccionada */}
-                            {simboloActivo && LOGOS[simboloActivo] && (
-                                <img
-                                    src={LOGOS[simboloActivo]}
-                                    alt={simboloActivo}
-                                    className="rounded-circle border bg-white p-1 shadow-sm"
-                                    style={{
-                                        width: "36px",
-                                        height: "36px",
-                                        objectFit: "contain"
-                                    }}
-                                />
-                            )}
+                                {simboloActivo && (
+				    <img
+				        src={acciones.find(a => a.simbolo === simboloActivo)?.logo || LOGOS[simboloActivo] || "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=100"}
+				        alt={simboloActivo}
+				        className="rounded-circle border bg-white p-1 shadow-sm"
+				        style={{
+				            width: "36px",
+				            height: "36px",
+				            objectFit: "contain"
+				        }}
+				    />
+				)}
+				  
+
                         </label>
                         <select
                             className="form-select form-select-lg border-light-subtle rounded-3"
@@ -242,7 +244,7 @@ function FormularioOperacion({ tipo }) {
 
                                             <img
 
-                                                src={LOGOS[simboloActivo]}
+                                                src={acciones.find(a => a.simbolo === simboloActivo)?.logo || LOGOS[simboloActivo] || "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=100"}
 
                                                 style={{
 

@@ -1,56 +1,59 @@
-/* Contenedor principal del Sidebar */
-.sidebar-fixed {
-    background-color: #0b132b !important; /* Azul marino/grisáceo ultra oscuro de la imagen */
-    height: calc(100vh - 56px);
-    position: sticky;
-    top: 56px;
-    z-index: 1020;
-}
-
-/* Estilo para el Logo */
-.sidebar-brand {
-    color: #ffffff;
-}
-
-.brand-icon-wrapper {
-    background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); /* Degradado vivo cian-azul */
-    width: 35px;
-    height: 35px;
+/* ==========================================
+   ESTILOS DE DISEÑO ORIGINAL PARA PC 
+   ========================================== */
+.app-layout-container {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    color: white;
-    font-size: 1.1rem;
-    box-shadow: 0 4px 10px rgba(0, 242, 254, 0.3);
+    flex-direction: row;
 }
 
-.brand-text {
-    letter-spacing: -0.5px;
+.sidebar-fixed {
+    background-color: #0b132b; /* Tu color oscuro original */
+    min-height: calc(100vh - 56px);
+    flex-shrink: 0;
 }
 
-/* Enlaces del menú (Inactivos) */
-.sidebar-fixed .nav-link {
-    border-radius: 10px;
-    margin-bottom: 8px;
-    padding: 12px 16px;
-    font-size: 0.95rem;
-    color: #94a3b8 !important; /* Gris azulado suave */
-    font-weight: 500;
-    transition: all 0.2s ease-in-out;
+.main-content-area {
+    flex-grow: 1;
 }
 
-/* Efecto Hover */
-.sidebar-fixed .nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.04);
-    color: #ffffff !important;
-}
+/* ==========================================
+   MÓVIL: SOLO SE ACTIVA EN PANTALLAS PEQUEÑAS 
+   ========================================== */
+@media (max-width: 768px) {
+    /* 1. Cambiamos el layout general de lado a vertical */
+    .app-layout-container {
+        flex-direction: column !important;
+    }
 
-/* ENLACE ACTIVO (Estilo idéntico a tu imagen de referencia) */
-.sidebar-fixed .nav-link.active {
-    background: #007bff !important; /* Azul brillante vivo */
-    color: #ffffff !important;
-    font-weight: 600;
-    /* Efecto de sombra neón sutil */
-    box-shadow: 0 4px 14px rgba(0, 123, 255, 0.4); 
+    /* 2. El sidebar deja de ser vertical y se vuelve una barra elegante arriba */
+    .sidebar-fixed {
+        width: 100% !important;
+        min-height: auto !important;
+        height: auto !important;
+        border-end: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        padding: 10px 15px !important;
+    }
+
+    /* Ocultamos el logo en móvil para no saturar espacio */
+    .sidebar-brand {
+        display: none !important;
+    }
+
+    /* 3. El menú pasa de lista a fila horizontal espaciada */
+    .sidebar-fixed .nav {
+        flex-direction: row !important;
+        justify-content: space-around !important;
+        width: 100% ;
+    }
+
+    .sidebar-fixed .nav-link {
+        padding: 6px 10px !important;
+        font-size: 0.9rem;
+    }
+
+    /* 4. Quitamos márgenes extraños en el contenido */
+    .main-content-area {
+        padding: 15px !important;
+    }
 }

@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/layout/Sidebar";
@@ -7,27 +6,27 @@ import Cotizar from "./pages/Cotizar";
 import Comprar from "./pages/Comprar";
 import Vender from "./pages/Vender";
 import Portafolios from "./pages/Portafolios";
+import Administrar from "./pages/Administrar";
 
 function App() {
     return (
-        <BrowserRouter>
-            {/* Navbar superior fijo arriba de todo */}
+        <BrowserRouter basename="/proyecto-stock">
+            {/* Navbar superior fijo */}
             <div className="sticky-top" style={{ zIndex: 1030 }}>
                 <Navbar />
             </div>
 
-            {/* Layout principal */}
-            <div className="d-flex">
-                
-                {/* Barra lateral fija */}
+            {/* Layout principal: Tu d-flex original que mantiene el estilo intacto */}
+            <div className="app-layout-container">
+
                 <Sidebar />
 
-                {/* Área de Contenido */}
+                {/* Área de Contenido con tu fondo gris SaaS ultra claro original */}
                 <div
-                    className="flex-grow-1 p-4 bg-light"
-                    style={{ 
+                    className="main-content-area p-4"
+                    style={{
                         minHeight: "calc(100vh - 56px)",
-                        backgroundColor: "#f8fafc" /* Fondo gris Saas ultra claro */
+                        backgroundColor: "#f8fafc"
                     }}
                 >
                     <Routes>
@@ -36,6 +35,7 @@ function App() {
                         <Route path="/comprar" element={<Comprar />} />
                         <Route path="/vender" element={<Vender />} />
                         <Route path="/portafolios" element={<Portafolios />} />
+                        <Route path="/administrar" element={<Administrar />} />
                     </Routes>
                 </div>
 

@@ -4,8 +4,8 @@ import "../../styles/sidebar.css";
 function Sidebar() {
     return (
         <div className="sidebar-fixed text-white p-3 border-end border-secondary border-opacity-10" style={{ width: "260px" }}>
-            
-            {/* LOGO RECUPERADO: Con estilo vivo y moderno */}
+
+            {/* LOGO ORIGINAL: Con tu estilo vivo y moderno */}
             <div className="sidebar-brand px-2 py-4 mb-3 d-flex align-items-center">
                 <div className="brand-icon-wrapper me-2">
                     <i className="bi bi-graph-up-arrow"></i>
@@ -38,6 +38,12 @@ function Sidebar() {
                     <i className="bi bi-wallet2 me-3 fs-5"></i>
                     Portafolios
                 </NavLink>
+
+                <NavLink className="nav-link d-flex align-items-center" to="/administrar">
+		    <i className="bi bi-gear me-3 fs-5"></i>
+		    Administrar
+		</NavLink>                 
+
             </nav>
         </div>
     );

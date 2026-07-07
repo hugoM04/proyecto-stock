@@ -59,7 +59,8 @@ function Cotizar() {
 
     
 
-    const logoSeleccionado = LOGOS[accionSeleccionada];
+    const accionActual = acciones.find(a => a.simbolo === accionSeleccionada);
+    const logoSeleccionado = accionActual?.logo || LOGOS[accionSeleccionada];
 
     return (
 
@@ -421,7 +422,7 @@ function Cotizar() {
 
                                 acciones.map((accion)=>{
 
-                                    const logo = LOGOS[accion.simbolo];
+                                    const logo = accion.logo || LOGOS[accion.simbolo] || "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=100";
 
                                     return(
 

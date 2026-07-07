@@ -54,3 +54,48 @@ app.use("/api/ventas", ventasRoutes);
 const cotizacionesRoutes = require("./routes/cotizaciones");
 
 app.use("/api/cotizacion", cotizacionesRoutes);
+
+// Endpoint para agregar una nueva empresa/acción
+app.post("/api/acciones", async (req, res) => {
+    const { nombre, simbolo, logo } = req.body;
+    
+    if (!nombre || !simbolo) {
+        return res.status(400).json({ error: "Nombre y símbolo son obligatorios" });
+    }
+
+    try {
+        // Guardamos el símbolo siempre en mayúsculas
+        const simboloMayus = simbolo.toUpperCase();
+        
+        // El logo puede ser una URL de imagen de internet o un string vacío si no ponen
+        const urlLogo = logo || "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=100";
+
+        const [result] = await db.query(
+            "INSERT INTO acciones (nombre, simbolo, logo) VALUES (?, ?, ?)",
+            [nombre, simboloMayus, urlLogo]
+        );
+
+        res.status(201).json({ message: "Empresa agregada con éxito", id: result.insertId });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Error al agregar la empresa en la base de datos" });
+    }
+});
+
+// Endpoint para eliminar una empresa/acción
+app.delete("/api/acciones/:simbolo", async (req, res) => {
+    const { simbolo } = req.params;
+
+    try {
+        const [result] = await db.query("DELETE FROM acciones WHERE simbolo = ?", [simbolo.toUpperCase()]);
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "La empresa no existe" });
+        }
+
+        res.json({ message: `Empresa ${simbolo} eliminada correctamente` });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Error al eliminar la empresa. Asegúrate de que no tenga transacciones asociadas." });
+    }
+});
