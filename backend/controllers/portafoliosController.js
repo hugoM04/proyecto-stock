@@ -70,6 +70,7 @@ const obtenerResumenPortafolio = async (req, res) => {
                 a.id AS accion_id,
                 a.simbolo,
                 a.nombre,
+                a.logo,
 
                 COALESCE(c.total_compras,0) AS compradas,
                 COALESCE(c.precio_promedio,0) AS precio_compra,
@@ -168,6 +169,8 @@ const obtenerResumenPortafolio = async (req, res) => {
 
                 nombre: accion.nombre,
 
+                logo: accion.logo,
+
                 cantidad: Number(accion.disponibles),
 
                 precioCompra: Number(accion.precio_compra),
@@ -262,9 +265,37 @@ const obtenerHistorialPortafolio = async (req, res) => {
 
 };
 
+const eliminarPortafolio = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // 1. Limpiamos transacciones vinculadas (Sintaxis Postgres con $1)
+        await pool.query("DELETE FROM compras WHERE portafolio_id = $1", [id]);
+        await pool.query("DELETE FROM ventas WHERE portafolio_id = $1", [id]);
+
+        // 2. Eliminamos el portafolio
+        const query = "DELETE FROM portafolios WHERE id = $1";
+        const result = await pool.query(query, [id]); 
+
+        // Validamos usando rowCount (Sintaxis nativa de tu pool de Postgres)
+        if (result.rowCount === 0) {
+            return res.status(404).json({ mensaje: "El portafolio no existe." });
+        }
+
+        return res.json({ mensaje: "Portafolio eliminado correctamente." });
+    } catch (error) {
+        console.error("Error real en el backend al eliminar:", error);
+        return res.status(500).json({ 
+            mensaje: "Error interno en el servidor al intentar eliminar.",
+            detalles: error.message 
+        });
+    }
+};
+
 module.exports = {
   obtenerPortafolios,
   crearPortafolio,
   obtenerResumenPortafolio,
-  obtenerHistorialPortafolio
+  obtenerHistorialPortafolio,
+  eliminarPortafolio 
 };

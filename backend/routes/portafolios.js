@@ -5,12 +5,14 @@ const {
   obtenerPortafolios,
   crearPortafolio,
   obtenerResumenPortafolio,
-  obtenerHistorialPortafolio
+  obtenerHistorialPortafolio,
+  eliminarPortafolio // <--- 1. Agregado aquí
 } = require("../controllers/portafoliosController");
 
 router.get("/", obtenerPortafolios);
 router.post("/", crearPortafolio);
 router.get("/:id/resumen", obtenerResumenPortafolio);
 router.get("/:id/historial", obtenerHistorialPortafolio);
+router.delete("/:id", eliminarPortafolio); // <--- 2. Agregado aquí
 
 module.exports = router;
