@@ -3,10 +3,11 @@ import { obtenerResumen } from "../services/resumenPortafolioService";
 import ResumenCards from "../components/dashboard/ResumenCards";
 import TablaAcciones from "../components/dashboard/TablaAcciones";
 import GraficaPortafolio from "../components/dashboard/GraficaPortafolio";
+import HistorialVentas from "../components/dashboard/HistorialVentas"; 
 import { obtenerHistorial } from "../services/historialService";
 import { obtenerPortafolios } from "../services/portafoliosService";
 import FormularioPortafolio from "../components/FormularioPortafolio";
-import api from "../services/api"; // Importamos la api para poder eliminar
+import api from "../services/api"; 
 
 function Portafolios() {
     const [resumen, setResumen] = useState(null);
@@ -71,15 +72,13 @@ function Portafolios() {
             return;
         }
 
-        // Buscamos comparando tanto en texto como número para evitar errores de tipo
         const portafolioActual = portafolios.find(p => String(p.id) === String(portafolioSeleccionado));
-        
+
         if (!portafolioActual) {
             alert("No se pudo encontrar la información del portafolio seleccionado.");
             return;
         }
 
-        // Confirmación de seguridad
         const confirmar = window.confirm(`¿Estás seguro de que deseas eliminar el portafolio "${portafolioActual.nombre}"? Esta acción borrará todo su historial de transacciones y no se puede deshacer.`);
 
         if (!confirmar) return;
@@ -90,7 +89,6 @@ function Portafolios() {
 
             alert("Portafolio eliminado correctamente.");
 
-            // Limpiamos la selección y recargamos la lista
             setPortafolioSeleccionado("");
             await cargarPortafolios();
         } catch (error) {
@@ -107,7 +105,7 @@ function Portafolios() {
     };
 
     return (
-        <div className="container-fluid px-2">
+        <div className="container-fluid px-3">
             {/* Menú de Navegación por Pestañas */}
             <ul className="nav nav-tabs border-bottom-0 mb-4" style={{ gap: "5px" }}>
                 <li className="nav-item">
@@ -166,8 +164,7 @@ function Portafolios() {
                                             </option>
                                         ))}
                                     </select>
-                                    
-                                    {/* Botón Eliminar con diseño Bootstrap moderno */}
+
                                     <button
                                         type="button"
                                         className="btn btn-danger rounded-3 px-3 d-flex align-items-center shadow-sm text-white"
@@ -201,12 +198,31 @@ function Portafolios() {
                                         <ResumenCards resumen={resumen} />
                                     </div>
 
-                                    <div className="mb-4">
-                                        <GraficaPortafolio historial={historial} />
+                                    {/* 📈 FILA 1: La Gráfica abarca el 100% del ancho de la pantalla */}
+                                    <div className="row mb-4">
+                                        <div className="col-12">
+                                            <GraficaPortafolio historial={historial} />
+                                        </div>
                                     </div>
 
-                                    <div className="mb-4">
-                                        <TablaAcciones acciones={resumen.acciones} />
+                                    {/* 🕒 FILA 2: El Historial de Operaciones va justo debajo de la gráfica */}
+                                    <div className="row mb-4">
+                                        <div className="col-12">
+                                            <div className="card border-0 shadow-sm rounded-4 p-4">
+                                                <h5 className="fw-bold text-dark mb-3">Historial Reciente de Operaciones</h5>
+                                                {/* Contenedor deslizante con Scroll vertical limitado para evitar deformaciones */}
+                                                <div className="overflow-auto" style={{ maxHeight: "250px", paddingRight: "5px" }}>
+                                                    <HistorialVentas ventas={resumen.ventas || []} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* 📊 FILA 3: Las Acciones Compradas van abajo del todo */}
+                                    <div className="row mb-4">
+                                        <div className="col-12">
+                                            <TablaAcciones acciones={resumen.acciones} />
+                                        </div>
                                     </div>
                                 </div>
                             )}

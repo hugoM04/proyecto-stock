@@ -1,6 +1,6 @@
 import { LOGOS } from "../../utils/logos";
 
-function TablaAcciones({ acciones }) {
+function TablaAcciones({ acciones = [] }) {
     return (
         <div className="card border-0 shadow-sm rounded-4 overflow-hidden mt-4">
 
@@ -24,22 +24,21 @@ function TablaAcciones({ acciones }) {
                             <th className="py-3">Precio Compra</th>
                             <th className="py-3">Precio Actual</th>
                             <th className="py-3">Valor Actual</th>
-                            <th className="py-3">Ganancia / Pérdida</th>
+                            <th className="py-3">Análisis (Ganancia / Pérdida)</th>
                         </tr>
                     </thead>
 
                     <tbody>
                         {acciones.map((accion) => {
+                            const cantidad = Number(accion.cantidad || 0);
                             const esPositivo = accion.ganancia >= 0;
 
-                            // LÓGICA HÍBRIDA:
-                            // 1. Intentamos buscar primero en tu archivo local estático (LOGOS)
+                            // LÓGICA HÍBRIDA DE LOGOS CONSERVADA:
                             let srcFinal = LOGOS[accion.simbolo];
 
-                            // 2. Si no existe en el archivo local, armamos la ruta dinámica del servidor usando lo que venga de la BD
                             if (!srcFinal && accion.logo) {
-                                srcFinal = accion.logo.startsWith('http') 
-                                    ? accion.logo 
+                                srcFinal = accion.logo.startsWith('http')
+                                    ? accion.logo
                                     : `https://hugo.teamtesvg.site/proyecto-stock/uploads/logos/${accion.logo}`;
                             }
 
@@ -66,7 +65,6 @@ function TablaAcciones({ acciones }) {
                                                         src={srcFinal}
                                                         alt={accion.simbolo}
                                                         onError={(e) => {
-                                                            // Si por alguna razón la imagen falla, ponemos el edificio gris
                                                             e.target.style.display = 'none';
                                                             e.target.parentNode.innerHTML = '<i class="bi bi-building text-muted"></i>';
                                                         }}
@@ -78,7 +76,6 @@ function TablaAcciones({ acciones }) {
                                                     />
                                                 </div>
                                             ) : (
-                                                // Si no tiene logo local ni en BD, se renderiza el edificio directamente
                                                 <div
                                                     className="rounded-3 bg-light border d-flex align-items-center justify-content-center me-3 text-secondary"
                                                     style={{ width: "38px", height: "38px" }}
@@ -93,9 +90,15 @@ function TablaAcciones({ acciones }) {
                                         </div>
                                     </td>
 
-                                    {/* Cantidad */}
-                                    <td className="py-3 text-center fw-medium text-secondary">
-                                        {accion.cantidad}
+                                    {/* Cantidad (Valida si está en 0 para avisar de forma elegante que se vendió todo) */}
+                                    <td className="py-3 text-center fw-medium">
+                                        {cantidad === 0 ? (
+                                            <span className="text-muted small bg-light px-2 py-1 rounded fw-semibold" style={{ fontSize: "0.8rem" }}>
+                                                Sin acciones (Vendido)
+                                            </span>
+                                        ) : (
+                                            <span className="text-secondary fw-semibold">{cantidad}</span>
+                                        )}
                                     </td>
 
                                     {/* Precios */}
@@ -111,15 +114,19 @@ function TablaAcciones({ acciones }) {
                                         ${accion.valorActual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
 
-                                    {/* Ganancia */}
+                                    {/* Análisis Visual de Ganancia / Pérdida */}
                                     <td className="py-3">
-                                        <div className="d-flex align-items-center">
-                                            <span className={`fw-bold me-2 ${esPositivo ? "text-success" : "text-danger"}`}>
-                                                {esPositivo ? "+" : ""}${accion.ganancia.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        <div className="d-inline-flex align-items-center p-2 rounded-3"
+                                             style={{
+                                                 background: esPositivo ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
+                                                 border: esPositivo ? "1px solid rgba(16, 185, 129, 0.2)" : "1px solid rgba(239, 68, 68, 0.2)"
+                                             }}>
+                                            <span className={`fw-bold me-2 ${esPositivo ? "text-success" : "text-danger"}`} style={{ fontSize: "0.9rem" }}>
+                                                {esPositivo ? "📈 Ganando:" : "📉 Perdiendo:"} {esPositivo ? "+" : ""}${accion.ganancia.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </span>
-                                            <span className={`badge px-2 py-1 rounded-2 small ${esPositivo ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger"}`}
-                                                  style={{ fontSize: "0.75rem" }}>
-                                                <i className={`bi ${esPositivo ? "bi-arrow-up-right" : "bi-arrow-down-right"}`}></i>
+                                            <span className={`badge px-1.5 py-0.5 rounded-2 text-white ${esPositivo ? "bg-success" : "bg-danger"}`}
+                                                  style={{ fontSize: "0.7rem" }}>
+                                                <i className={`bi ${esPositivo ? "bi-caret-up-fill" : "bi-caret-down-fill"}`}></i>
                                             </span>
                                         </div>
                                     </td>

@@ -43,9 +43,7 @@ const crearPortafolio = async (req, res) => {
 };
 
 const obtenerResumenPortafolio = async (req, res) => {
-
     try {
-
         const { id } = req.params;
 
         // Verificar que exista el portafolio
@@ -55,162 +53,127 @@ const obtenerResumenPortafolio = async (req, res) => {
         );
 
         if (portafolio.rowCount === 0) {
-
             return res.status(404).json({
                 mensaje: "El portafolio no existe"
             });
-
         }
 
-        // Obtener resumen de compras y ventas
+        // Obtener resumen de compras y ventas agrupadas con cálculos de rendimiento por venta
         const resumen = await pool.query(`
-
             SELECT
-
                 a.id AS accion_id,
                 a.simbolo,
                 a.nombre,
                 a.logo,
-
-                COALESCE(c.total_compras,0) AS compradas,
-                COALESCE(c.precio_promedio,0) AS precio_compra,
-
-                COALESCE(v.total_ventas,0) AS vendidas,
-
-                COALESCE(c.total_compras,0) -
-                COALESCE(v.total_ventas,0) AS disponibles
-
+                COALESCE(c.total_compras, 0) AS compradas,
+                COALESCE(c.precio_promedio, 0) AS precio_compra,
+                COALESCE(v.total_ventas, 0) AS vendidas,
+                COALESCE(v.precio_venta_promedio, 0) AS precio_venta,
+                -- Cantidad que queda disponible
+                COALESCE(c.total_compras, 0) - COALESCE(v.total_ventas, 0) AS disponibles,
+                -- 💡 TU PETICIÓN: Ganancia realizada real guardada de las ventas hechas
+                COALESCE(v.total_rendimiento, 0) AS ganancia_ventas
             FROM acciones a
-
             LEFT JOIN (
-
                 SELECT
-
                     accion_id,
-
                     SUM(cantidad) AS total_compras,
-
                     AVG(precio_compra) AS precio_promedio
-
                 FROM compras
-
                 WHERE portafolio_id = $1
-
                 GROUP BY accion_id
-
-            ) c
-
-            ON a.id = c.accion_id
-
+            ) c ON a.id = c.accion_id
             LEFT JOIN (
-
                 SELECT
-
                     accion_id,
-
-                    SUM(cantidad) AS total_ventas
-
+                    SUM(cantidad) AS total_ventas,
+                    AVG(precio_venta) AS precio_venta_promedio,
+                    -- Sumamos el rendimiento calculado acumulado de esta acción
+                    SUM(COALESCE(rendimiento_calculado, 0)) AS total_rendimiento
                 FROM ventas
-
-                WHERE portafolio_id = $1
-
+                WHERE portafolio_id = $1 AND estado = 'completada'
                 GROUP BY accion_id
-
-            ) v
-
-            ON a.id = v.accion_id
-
-            WHERE c.total_compras IS NOT NULL
-               OR v.total_ventas IS NOT NULL
-
+            ) v ON a.id = v.accion_id
+            WHERE c.total_compras IS NOT NULL OR v.total_ventas IS NOT NULL
             ORDER BY a.simbolo
+        `, [id]);
 
-        `,[id]);
+        // Historial real de ventas individuales para el componente lateral
+        // (Pendientes y Completadas)
+	const ventasHistorial = await pool.query(`
+	    SELECT
+	        v.id,
+	        a.simbolo,
+	        v.cantidad,
+	        v.precio_venta,
+	        v.rendimiento_calculado,
+	        v.tipo_orden,     -- 💡 Agregado para saber si es mercado o límite
+	        v.estado,         -- 💡 Agregado para renderizar 'pendiente' o 'completada' en React
+	        v.fecha
+	    FROM ventas v
+	    JOIN acciones a ON v.accion_id = a.id
+	    WHERE v.portafolio_id = $1 -- 🚀 Quitamos el filtro: AND v.estado = 'completada'
+	    ORDER BY v.fecha DESC
+	    LIMIT 10
+	`, [id]);
 
         const acciones = [];
-
         let totalInvertido = 0;
-
         let valorActual = 0;
+        let gananciaTotalAcumulada = 0;
 
-        for(const accion of resumen.rows){
-
-            // Si ya no quedan acciones no se muestran
-            if(Number(accion.disponibles) <= 0){
-
-                continue;
-
-            }
+        for (const accion of resumen.rows) {
+            // 🚀 CORRECCIÓN CLAVE: Eliminamos el 'continue' para que NUNCA desapariencia la acción del portafolio.
+            const cantidadDisponibles = Number(accion.disponibles);
 
             const datos = await obtenerCotizacion(accion.simbolo);
-
             const precioActual = datos.last[0];
 
-            const invertido =
-                Number(accion.precio_compra) *
-                Number(accion.disponibles);
+            // Rendimiento de lo que aún mantienes flotando en el mercado
+            const invertido = Number(accion.precio_compra) * cantidadDisponibles;
+            const actual = precioActual * cantidadDisponibles;
+            const gananciaFlotante = actual - invertido;
 
-            const actual =
-                precioActual *
-                Number(accion.disponibles);
-
-            const ganancia =
-                actual - invertido;
+            // Ganancia fija realizada por tus ventas (Ej: Los 100 pesos de diferencia por acción vendida)
+            const gananciaPorVentasRealizadas = Number(accion.ganancia_ventas);
 
             totalInvertido += invertido;
-
             valorActual += actual;
+            
+            // La ganancia de esta acción es lo latente del mercado + lo que ya le ganaste vendiendo caro
+            const gananciaFinalAccion = gananciaFlotante + gananciaPorVentasRealizadas;
+            gananciaTotalAcumulada += gananciaFinalAccion;
 
             acciones.push({
-
                 accion_id: accion.accion_id,
-
                 simbolo: accion.simbolo,
-
                 nombre: accion.nombre,
-
                 logo: accion.logo,
-
-                cantidad: Number(accion.disponibles),
-
+                cantidad: cantidadDisponibles, // Mostrará 0 si vendiste todo, pero seguirá visible
                 precioCompra: Number(accion.precio_compra),
-
                 precioActual,
-
                 valorActual: actual,
-
-                ganancia
-
+                // Mandamos la ganancia combinada (Mercado actual + tus ventas ganadas fijas)
+                ganancia: gananciaFinalAccion,
+                gananciaRealizadaVenta: gananciaPorVentasRealizadas
             });
-
         }
 
         res.json({
-
             portafolio: portafolio.rows[0].nombre,
-
             totalInvertido,
-
             valorActual,
-
-            gananciaTotal: valorActual - totalInvertido,
-
-            acciones
-
+            gananciaTotal: gananciaTotalAcumulada,
+            acciones,
+            ventas: ventasHistorial.rows
         });
 
-    } catch(error){
-
+    } catch (error) {
         console.error(error);
-
         res.status(500).json({
-
-            mensaje:"Error al obtener el resumen del portafolio"
-
+            mensaje: "Error al obtener el resumen del portafolio"
         });
-
     }
-
 };
 
 const obtenerHistorialPortafolio = async (req, res) => {

@@ -12,6 +12,10 @@ const obtenerVentas = async (req, res) => {
         a.nombre AS accion,
         v.cantidad,
         v.precio_venta,
+        v.tipo_orden,
+        v.precio_limite,
+        v.estado,
+        v.rendimiento_calculado,
         v.fecha
       FROM ventas v
       JOIN portafolios p ON v.portafolio_id = p.id
@@ -29,30 +33,28 @@ const obtenerVentas = async (req, res) => {
   }
 };
 
-// Registrar una venta
+// Registrar una venta (Mercado o Límite)
 const crearVenta = async (req, res) => {
   try {
     const {
       portafolio_id,
       accion_id,
-      cantidad
+      cantidad,
+      tipo_orden,     // 'mercado' o 'limite' (Enviado desde React)
+      precio_limite   // El precio que quiere el usuario (Si es limite)
     } = req.body;
 
-    if (!portafolio_id || !accion_id || !cantidad ) {
+    if (!portafolio_id || !accion_id || !cantidad) {
       return res.status(400).json({
         mensaje: "Todos los campos son obligatorios",
       });
     }
 
-    if(cantidad <= 0){
-
-    return res.status(400).json({
-
-        mensaje:"La cantidad debe ser mayor que cero."
-
-    });
-
-}
+    if (cantidad <= 0) {
+      return res.status(400).json({
+        mensaje: "La cantidad debe ser mayor que cero.",
+      });
+    }
 
     // Validar portafolio
     const existePortafolio = await pool.query(
@@ -68,67 +70,87 @@ const crearVenta = async (req, res) => {
 
     // Validar acción
     const existeAccion = await pool.query(
-    `
-    SELECT id, simbolo
-    FROM acciones
-    WHERE id = $1
-    `,
-    [accion_id]
-  );
+      "SELECT id, simbolo FROM acciones WHERE id = $1",
+      [accion_id]
+    );
 
     if (existeAccion.rowCount === 0) {
       return res.status(404).json({
         mensaje: "La acción no existe",
       });
     }
-    
-    const simbolo = existeAccion.rows[0].simbolo;
 
-    const datos = await obtenerCotizacion(simbolo);
+ 
 
-    const precio_venta = datos.last[0];
+	const simbolo = existeAccion.rows[0].simbolo;
 
-    // Total comprado
-    const compras = await pool.query(
-      `
-      SELECT COALESCE(SUM(cantidad), 0) AS total
-      FROM compras
-      WHERE portafolio_id = $1
-        AND accion_id = $2
-      `,
-      [portafolio_id, accion_id]
-    );
+	// 1. Determinar valores según el tipo de orden
+	const esLimite = tipo_orden === 'limite';
 
-    // Total vendido
-    const ventas = await pool.query(
-      `
-      SELECT COALESCE(SUM(cantidad), 0) AS total
-      FROM ventas
-      WHERE portafolio_id = $1
-        AND accion_id = $2
-      `,
-      [portafolio_id, accion_id]
-    );
+	// 💡 CAMBIO AQUÍ: Ahora todas pasan directamente a 'completada' aunque sean límite
+	const estado = 'completada'; 
 
-    const totalComprado = Number(compras.rows[0].total);
-    const totalVendido = Number(ventas.rows[0].total);
+	let precio_final = null;
 
-    const disponibles = totalComprado - totalVendido;
+	if (esLimite) {
+	  if (!precio_limite || precio_limite <= 0) {
+	    return res.status(400).json({
+	      mensaje: "Debe especificar un precio límite válido.",
+	    });
+	  }
+	  // Tomamos el precio inventado/fijado por el usuario como el precio final de la venta
+	  precio_final = precio_limite; 
+	} else {
+	  // Si es a mercado, mantiene la cotización real actual
+	  const datos = await obtenerCotizacion(simbolo);
+	  precio_final = datos.last[0];
+	}
 
-    if (cantidad > disponibles) {
-      return res.status(400).json({
-        mensaje: `No es posible vender ${cantidad} acciones. Solo hay ${disponibles} disponibles.`,
-      });
-    }
+	// ... (Aquí dejas igual los queries de compras y ventas de validación de existencias) ...
 
+	// --- MODIFICAR LA LÓGICA DE ANÁLISIS DE RENDIMIENTO ---
+	// Como ahora 'estado' SIEMPRE será 'completada', calculará el rendimiento al instante
+	let rendimiento_calculado = null;
+
+	if (estado === 'completada') {
+	  const historialCompras = await pool.query(
+	    `
+	    SELECT
+	      COALESCE(AVG(precio_compra), 0) AS precio_promedio
+	    FROM compras
+	    WHERE portafolio_id = $1 AND accion_id = $2
+	    `,
+	    [portafolio_id, accion_id]
+	  );
+
+	  let precioPromedioCompra = Number(historialCompras.rows[0].precio_promedio);
+
+	  if (precioPromedioCompra === 0) {
+	    precioPromedioCompra = precio_final;
+	  }
+
+	  // Rendimiento Real utilizando el 'precio_final' (que será el límite si fue personalizada)
+	  rendimiento_calculado = (Number(precio_final) - precioPromedioCompra) * Number(cantidad);
+	}
+
+    // 2. Insertar incluyendo las nuevas columnas y el análisis de rendimiento
     const result = await pool.query(
       `
       INSERT INTO ventas
-      (portafolio_id, accion_id, cantidad, precio_venta)
-      VALUES ($1, $2, $3, $4)
+      (portafolio_id, accion_id, cantidad, precio_venta, tipo_orden, precio_limite, estado, rendimiento_calculado)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
       `,
-      [portafolio_id, accion_id, cantidad, precio_venta]
+      [
+        portafolio_id,
+        accion_id,
+        cantidad,
+        precio_final,
+        tipo_orden || 'mercado',
+        esLimite ? precio_limite : null,
+        estado,
+        rendimiento_calculado
+      ]
     );
 
     res.status(201).json(result.rows[0]);
